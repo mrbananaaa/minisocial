@@ -3,6 +3,7 @@ package post
 import (
 	"log/slog"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/mrbananaaa/minisocial/internal/platform/validation"
 	"github.com/mrbananaaa/minisocial/internal/post/api"
 	"github.com/mrbananaaa/minisocial/internal/post/application"
@@ -11,6 +12,7 @@ import (
 )
 
 type Module struct {
+	app     *application.Application
 	handler *api.Handler
 }
 
@@ -24,6 +26,15 @@ func New(
 	handler := api.New(app, validator)
 
 	return &Module{
+		app:     app,
 		handler: handler,
 	}
+}
+
+func (m *Module) Service() *application.Application {
+	return m.app
+}
+
+func (m *Module) RegisterRoutes(r chi.Router) {
+	m.handler.RegisterRoutes(r)
 }
