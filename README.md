@@ -1,3 +1,5 @@
+# MiniSocial
+
 A collaboration project between me and GPT. This project is one of my journey of learning go(lang) and this time we’ll focus on the architecture. I’m learning something called Modular Monolith but this project is combination about a lot of buzzword bullshit like Clean Architecture, Hexagonal, DDD, CQRS, and any other shit that obviously I don’t like until it solve the problem. So the point is I’m trying to learn the process of making an app with Modular Monolith approach with the hope that it’s gonna be more easier to swap or split one of the modules or domain to microservice in the future when the app start to grow.
 
 The app are simply Medium or Dev.to clone, so the user can create account and start writing, or just come to read an articles.
