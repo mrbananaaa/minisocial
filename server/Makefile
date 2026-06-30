@@ -5,10 +5,12 @@ build-server:
 .PHONY: generate-query
 generate-query:
 	@sqlc generate -f internal/user/repositories/postgres/sqlc.yaml
+	@sqlc generate -f internal/post/repositories/postgres/sqlc.yaml
 
 .PHONY: diff-query
 diff-query:
 	@sqlc diff -f internal/user/repositories/postgres/sqlc.yaml
+	@sqlc diff -f internal/post/repositories/postgres/sqlc.yaml
 
 .PHONY: help
 help:
