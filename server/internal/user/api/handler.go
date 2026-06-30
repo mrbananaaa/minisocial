@@ -59,6 +59,10 @@ func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
 	user, err := h.app.GetUser(r.Context(), application.GetUserInput{
 		ID: new(userID),
 	})
+	if err != nil {
+		httpx.Error(w, http.StatusBadRequest, err.Error(), nil)
+		return
+	}
 
 	httpx.Res(w, http.StatusOK, "", toUserResponse(user))
 }
