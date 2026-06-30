@@ -1,0 +1,49 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: minisocial
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  nats:
+    image: nats
+    command: "-js --http_port 8222 -sd /data"
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    volumes:
+      - nats-store:/data
+
+  server:
+    image: minisocial
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+      target: dev
+    init: true
+    volumes:
+      - type: bind
+        source: ./server
+        target: /app
+    depends_on:
+      - postgres
+      - nats
+    ports:
+      - 8080:8080
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  nats-store:
