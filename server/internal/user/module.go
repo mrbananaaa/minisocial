@@ -13,6 +13,7 @@ import (
 )
 
 type Module struct {
+	app     *application.Application
 	handler *api.Handler
 }
 
@@ -27,8 +28,13 @@ func New(
 	handler := api.New(app, validator)
 
 	return &Module{
+		app:     app,
 		handler: handler,
 	}
+}
+
+func (m *Module) Service() *application.Application {
+	return m.app
 }
 
 func (m *Module) RegisterRoutes(r chi.Router) {
