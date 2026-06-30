@@ -10,6 +10,18 @@ import (
 	"github.com/google/uuid"
 )
 
+type Post struct {
+	ID         uuid.UUID
+	AuthorID   uuid.UUID
+	Title      string
+	Slug       string
+	Content    string
+	Status     string
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+	ArchivedAt *time.Time
+}
+
 type User struct {
 	ID           uuid.UUID
 	Email        string
