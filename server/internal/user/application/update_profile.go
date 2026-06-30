@@ -15,8 +15,8 @@ type UpdateProfileInput struct {
 	AvatarURL string
 }
 
-func (s *Service) UpdateProfile(ctx context.Context, input UpdateProfileInput) (*domain.User, error) {
-	user, err := s.repo.GetByID(ctx, input.ID)
+func (a *Application) UpdateProfile(ctx context.Context, input UpdateProfileInput) (*domain.User, error) {
+	user, err := a.repo.GetByID(ctx, input.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func (s *Service) UpdateProfile(ctx context.Context, input UpdateProfileInput) (
 		user.AvatarURL = input.AvatarURL
 	}
 
-	updatedUser, err := s.repo.Update(ctx, user)
+	updatedUser, err := a.repo.Update(ctx, user)
 	if err != nil {
 		return nil, err
 	}

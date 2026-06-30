@@ -12,12 +12,12 @@ import (
 )
 
 type Handler struct {
-	app       *application.Service
+	app       *application.Application
 	validator *validation.Validator
 }
 
 func New(
-	app *application.Service,
+	app *application.Application,
 	validator *validation.Validator,
 ) *Handler {
 	return &Handler{

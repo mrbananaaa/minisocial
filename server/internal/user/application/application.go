@@ -2,7 +2,7 @@ package application
 
 import "github.com/mrbananaaa/minisocial/internal/user/domain"
 
-type Service struct {
+type Application struct {
 	repo   domain.Repository
 	hasher PasswordHasher
 }
@@ -10,8 +10,8 @@ type Service struct {
 func New(
 	repo domain.Repository,
 	hasher PasswordHasher,
-) *Service {
-	return &Service{
+) *Application {
+	return &Application{
 		repo:   repo,
 		hasher: hasher,
 	}

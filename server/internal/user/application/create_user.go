@@ -22,8 +22,8 @@ type CreateUserOutput struct {
 	User *domain.User
 }
 
-func (s *Service) CreateUser(ctx context.Context, input CreateUserInput) (*CreateUserOutput, error) {
-	exists, err := s.repo.GetByEmail(ctx, input.Email)
+func (a *Application) CreateUser(ctx context.Context, input CreateUserInput) (*CreateUserOutput, error) {
+	exists, err := a.repo.GetByEmail(ctx, input.Email)
 	if err != nil && !errors.Is(err, domain.ErrEmailAlreadyExists) {
 		return nil, err
 	}
@@ -31,7 +31,7 @@ func (s *Service) CreateUser(ctx context.Context, input CreateUserInput) (*Creat
 		return nil, domain.ErrEmailAlreadyExists
 	}
 
-	exists, err = s.repo.GetByUsername(ctx, input.Username)
+	exists, err = a.repo.GetByUsername(ctx, input.Username)
 	if err != nil && !errors.Is(err, domain.ErrUsernameAlreadyExists) {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func (s *Service) CreateUser(ctx context.Context, input CreateUserInput) (*Creat
 		return nil, err
 	}
 
-	hashed, err := s.hasher.Hash(input.Password)
+	hashed, err := a.hasher.Hash(input.Password)
 	if err != nil {
 		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
@@ -58,7 +58,7 @@ func (s *Service) CreateUser(ctx context.Context, input CreateUserInput) (*Creat
 		UpdatedAt:    time.Now(),
 	}
 
-	user, err = s.repo.Create(ctx, user)
+	user, err = a.repo.Create(ctx, user)
 	if err != nil {
 		return nil, err
 	}

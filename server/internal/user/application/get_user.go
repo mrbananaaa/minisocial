@@ -7,16 +7,16 @@ import (
 	"github.com/mrbananaaa/minisocial/internal/user/domain"
 )
 
-func (s *Service) GetUserByID(ctx context.Context, id uuid.UUID) (*domain.User, error) {
-	return s.repo.GetByID(ctx, id)
+func (a *Application) GetUserByID(ctx context.Context, id uuid.UUID) (*domain.User, error) {
+	return a.repo.GetByID(ctx, id)
 }
 
-func (s *Service) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
-	return s.repo.GetByEmail(ctx, email)
+func (a *Application) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
+	return a.repo.GetByEmail(ctx, email)
 }
 
-func (s *Service) GetUserByUsername(ctx context.Context, username string) (*domain.User, error) {
-	return s.repo.GetByUsername(ctx, username)
+func (a *Application) GetUserByUsername(ctx context.Context, username string) (*domain.User, error) {
+	return a.repo.GetByUsername(ctx, username)
 }
 
 type GetUserInput struct {
@@ -25,9 +25,9 @@ type GetUserInput struct {
 	Username *string
 }
 
-func (s *Service) GetUser(ctx context.Context, input GetUserInput) (*domain.User, error) {
+func (a *Application) GetUser(ctx context.Context, input GetUserInput) (*domain.User, error) {
 	if input.ID != nil {
-		u, err := s.repo.GetByID(ctx, *input.ID)
+		u, err := a.repo.GetByID(ctx, *input.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -35,7 +35,7 @@ func (s *Service) GetUser(ctx context.Context, input GetUserInput) (*domain.User
 	}
 
 	if input.Email != nil {
-		u, err := s.repo.GetByEmail(ctx, *input.Email)
+		u, err := a.repo.GetByEmail(ctx, *input.Email)
 		if err != nil {
 			return nil, err
 		}
@@ -43,7 +43,7 @@ func (s *Service) GetUser(ctx context.Context, input GetUserInput) (*domain.User
 	}
 
 	if input.Username != nil {
-		u, err := s.repo.GetByUsername(ctx, *input.Username)
+		u, err := a.repo.GetByUsername(ctx, *input.Username)
 		if err != nil {
 			return nil, err
 		}

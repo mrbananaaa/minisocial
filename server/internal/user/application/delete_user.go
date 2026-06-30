@@ -6,11 +6,11 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *Service) DeleteUser(ctx context.Context, id uuid.UUID) error {
-	user, err := s.repo.GetByID(ctx, id)
+func (a *Application) DeleteUser(ctx context.Context, id uuid.UUID) error {
+	user, err := a.repo.GetByID(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	return s.repo.Delete(ctx, user.ID)
+	return a.repo.Delete(ctx, user.ID)
 }
