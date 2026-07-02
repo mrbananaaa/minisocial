@@ -1,8 +1,6 @@
 package post
 
 import (
-	"log/slog"
-
 	"github.com/mrbananaaa/minisocial/internal/post/application"
 	"github.com/mrbananaaa/minisocial/internal/post/repositories/postgres"
 	"github.com/mrbananaaa/minisocial/internal/post/repositories/postgres/sqlc"
@@ -14,7 +12,6 @@ type Module struct {
 
 func New(
 	db sqlc.DBTX,
-	logger *slog.Logger,
 ) *Module {
 	repo := postgres.New(db)
 	app := application.New(repo)

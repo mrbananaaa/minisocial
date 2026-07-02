@@ -1,8 +1,6 @@
 package user
 
 import (
-	"log/slog"
-
 	"github.com/mrbananaaa/minisocial/internal/user/api"
 	"github.com/mrbananaaa/minisocial/internal/user/application"
 	"github.com/mrbananaaa/minisocial/internal/user/infra/password"
@@ -17,7 +15,6 @@ type Module struct {
 
 func New(
 	db sqlc.DBTX,
-	logger *slog.Logger,
 ) *Module {
 	repo := postgres.New(db)
 	hasher := password.New(12)

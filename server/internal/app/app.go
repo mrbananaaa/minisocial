@@ -44,8 +44,8 @@ func New(cfg *config.Config) (*App, error) {
 		return nil, err
 	}
 
-	userModule := user.New(dbPool, log)
-	postModule := post.New(dbPool, log)
+	userModule := user.New(dbPool)
+	postModule := post.New(dbPool)
 
 	createPostWorkflow := createpost.New(
 		userModule.Service(),
