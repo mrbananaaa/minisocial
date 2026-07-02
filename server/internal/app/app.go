@@ -12,9 +12,13 @@ import (
 	"github.com/mrbananaaa/minisocial/internal/platform/db"
 	"github.com/mrbananaaa/minisocial/internal/platform/logger"
 	"github.com/mrbananaaa/minisocial/internal/platform/nats"
+	"github.com/mrbananaaa/minisocial/internal/platform/validation"
 	"github.com/mrbananaaa/minisocial/internal/post"
 	"github.com/mrbananaaa/minisocial/internal/user"
-	"github.com/mrbananaaa/minisocial/internal/workflows"
+	createpost "github.com/mrbananaaa/minisocial/internal/workflows/create_post"
+
+	postapi "github.com/mrbananaaa/minisocial/internal/post/api"
+	userapi "github.com/mrbananaaa/minisocial/internal/user/api"
 )
 
 type App struct {
@@ -43,16 +47,20 @@ func New(cfg *config.Config) (*App, error) {
 	userModule := user.New(dbPool, log)
 	postModule := post.New(dbPool, log)
 
-	workflowsModule := workflows.New(
+	createPostWorkflow := createpost.New(
 		userModule.Service(),
 		postModule.Service(),
 	)
 
-	r := NewRouter()
+	validator := validation.New()
 
-	userModule.RegisterRoutes(r)
-	postModule.RegisterRoutes(r)
-	workflowsModule.RegisterRoutes(r)
+	userHandler := userapi.New(userModule.Service(), validator)
+	posthandler := postapi.New(postModule.Service(), createPostWorkflow, validator)
+
+	r := NewRouter(Handler{
+		userHandler: userHandler,
+		postHandler: posthandler,
+	})
 
 	s := &http.Server{
 		Addr:         fmt.Sprintf(":%s", cfg.HTTP.Port),
