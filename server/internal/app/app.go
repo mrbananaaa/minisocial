@@ -44,12 +44,15 @@ func New(cfg *config.Config) (*App, error) {
 		return nil, err
 	}
 
+	txManager := db.NewTxManager(dbPool)
+
 	userModule := user.New(dbPool)
 	postModule := post.New(dbPool)
 
 	createPostWorkflow := createpost.New(
 		userModule.Service(),
 		postModule.Service(),
+		txManager,
 	)
 
 	validator := validation.New()
