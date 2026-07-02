@@ -19,3 +19,7 @@ compose-dev-down:
 .PHONY: compose-dev-logs
 compose-dev-logs:
 	@docker compose -f $(DEV_COMPOSE_FILE) logs -f
+
+.PHONY: psql
+psql:
+	@docker compose -f $(DEV_COMPOSE_FILE) exec -it postgres psql -d minisocial -U postgres
