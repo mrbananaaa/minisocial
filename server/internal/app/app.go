@@ -33,11 +33,11 @@ func New(cfg *config.Config) (*App, error) {
 
 	log := logger.New(&logger.Config{Level: cfg.Logger.Level})
 
-	db, err := db.New(ctx, cfg.Database)
+	database, err := db.New(ctx, cfg.Database)
 	if err != nil {
 		return nil, err
 	}
-	dbPool := db.GetPool()
+	dbPool := database.GetPool()
 
 	_, err = nats.New(cfg.NATS)
 	if err != nil {
@@ -72,7 +72,7 @@ func New(cfg *config.Config) (*App, error) {
 
 	return &App{
 		Log:        log,
-		DB:         db,
+		DB:         database,
 		httpServer: s,
 		cfg:        cfg,
 	}, nil
