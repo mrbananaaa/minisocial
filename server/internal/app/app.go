@@ -57,7 +57,7 @@ func New(cfg *config.Config) (*App, error) {
 	userHandler := userapi.New(userModule.Service(), validator)
 	posthandler := postapi.New(postModule.Service(), createPostWorkflow, validator)
 
-	r := NewRouter(Handler{
+	r := NewRouter(Routes{
 		userHandler: userHandler,
 		postHandler: posthandler,
 	})

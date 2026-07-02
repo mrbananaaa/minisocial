@@ -9,12 +9,12 @@ import (
 	userapi "github.com/mrbananaaa/minisocial/internal/user/api"
 )
 
-type Handler struct {
+type Routes struct {
 	userHandler *userapi.Handler
 	postHandler *postapi.Handler
 }
 
-func NewRouter(h Handler) chi.Router {
+func NewRouter(h Routes) chi.Router {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
