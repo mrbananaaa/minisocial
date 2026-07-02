@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/mrbananaaa/minisocial/internal/platform/db"
 	userDomain "github.com/mrbananaaa/minisocial/internal/user/domain"
 
 	postApp "github.com/mrbananaaa/minisocial/internal/post/application"
@@ -13,8 +14,9 @@ import (
 )
 
 type Workflow struct {
-	users UserService
-	posts PostService
+	users     UserService
+	posts     PostService
+	txManager *db.TxManager
 }
 
 type UserService interface {
@@ -28,10 +30,12 @@ type PostService interface {
 func New(
 	users UserService,
 	posts PostService,
+	txManager *db.TxManager,
 ) *Workflow {
 	return &Workflow{
-		users: users,
-		posts: posts,
+		users:     users,
+		posts:     posts,
+		txManager: txManager,
 	}
 }
 
@@ -52,32 +56,45 @@ type Output struct {
 	UpdatedAt time.Time
 }
 
+// Execute ...
+// TODO: Test this manually on the handler LOL 😂
 func (w *Workflow) Execute(
 	ctx context.Context,
 	input Input,
 ) (*Output, error) {
-	u, err := w.users.GetUserByID(ctx, input.AuthorID)
-	if err != nil {
-		return nil, err
-	}
+	var out *Output
 
-	p, err := w.posts.CreatePost(ctx, postApp.CreatePostInput{
-		AuthorID: u.ID,
-		Title:    input.Title,
-		Content:  input.Content,
+	err := w.txManager.WithTx(ctx, func(ctx context.Context) error {
+		u, err := w.users.GetUserByID(ctx, input.AuthorID)
+		if err != nil {
+			return err
+		}
+
+		p, err := w.posts.CreatePost(ctx, postApp.CreatePostInput{
+			AuthorID: u.ID,
+			Title:    input.Title,
+			Content:  input.Content,
+		})
+		if err != nil {
+			return err
+		}
+
+		out = &Output{
+			ID:        p.ID,
+			AuthorID:  p.AuthorID,
+			Title:     p.Title,
+			Slug:      p.Slug,
+			Content:   p.Content,
+			Status:    p.Status,
+			CreatedAt: p.CreatedAt,
+			UpdatedAt: p.UpdatedAt,
+		}
+
+		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	return &Output{
-		ID:        p.ID,
-		AuthorID:  p.AuthorID,
-		Title:     p.Title,
-		Slug:      p.Slug,
-		Content:   p.Content,
-		Status:    p.Status,
-		CreatedAt: p.CreatedAt,
-		UpdatedAt: p.UpdatedAt,
-	}, nil
+	return out, nil
 }
