@@ -9,15 +9,19 @@ import (
 	"github.com/mrbananaaa/minisocial/internal/platform/httpx"
 	"github.com/mrbananaaa/minisocial/internal/platform/validation"
 	"github.com/mrbananaaa/minisocial/internal/post/application"
+	"github.com/mrbananaaa/minisocial/internal/post/domain"
+	createpost "github.com/mrbananaaa/minisocial/internal/workflows/create_post"
 )
 
 type Handler struct {
-	app       *application.Application
-	validator *validation.Validator
+	app        *application.Application
+	createpost *createpost.Workflow
+	validator  *validation.Validator
 }
 
 func New(
 	app *application.Application,
+	createpost *createpost.Workflow,
 	validator *validation.Validator,
 ) *Handler {
 	return &Handler{
@@ -39,13 +43,27 @@ func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	out, err := h.app.CreatePost(r.Context(), toCreatePostInput(uuid.New(), req))
+	out, err := h.createpost.Execute(r.Context(), createpost.Input{
+		// TODO: extract user from context
+		AuthorID: uuid.New(),
+		Title:    req.Title,
+		Content:  req.Content,
+	})
 	if err != nil {
 		httpx.Error(w, http.StatusBadRequest, err.Error(), nil)
 		return
 	}
 
-	httpx.Res(w, http.StatusCreated, "post created", toPostResponse(out))
+	httpx.Res(w, http.StatusCreated, "post created", toPostResponse(&domain.Post{
+		ID:        out.ID,
+		AuthorID:  out.AuthorID,
+		Title:     out.Title,
+		Slug:      out.Slug,
+		Content:   out.Content,
+		Status:    out.Status,
+		CreatedAt: out.CreatedAt,
+		UpdatedAt: out.UpdatedAt,
+	}))
 }
 
 func (h *Handler) EditPost(w http.ResponseWriter, r *http.Request) {
