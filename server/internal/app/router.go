@@ -4,9 +4,17 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+
+	postapi "github.com/mrbananaaa/minisocial/internal/post/api"
+	userapi "github.com/mrbananaaa/minisocial/internal/user/api"
 )
 
-func NewRouter() chi.Router {
+type Handler struct {
+	userHandler *userapi.Handler
+	postHandler *postapi.Handler
+}
+
+func NewRouter(h Handler) chi.Router {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -23,6 +31,19 @@ func NewRouter() chi.Router {
 		MaxAge:           300,
 	}))
 	r.Use(middleware.Compress(5, "application/json"))
+
+	r.Route("/users", func(u chi.Router) {
+		u.Post("/", h.userHandler.CreateUser)
+		u.Get("/{id}", h.userHandler.GetUser)
+		u.Patch("/{id}", h.userHandler.UpdateProfile)
+		u.Delete("/{id}", h.userHandler.DeleteUser)
+	})
+
+	r.Route("/posts", func(u chi.Router) {
+		u.Post("/", h.postHandler.CreatePost)
+		u.Patch("/{id}", h.postHandler.EditPost)
+		u.Delete("/{id}", h.postHandler.ArchivePost)
+	})
 
 	return r
 }
