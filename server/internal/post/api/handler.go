@@ -25,8 +25,9 @@ func New(
 	validator *validation.Validator,
 ) *Handler {
 	return &Handler{
-		app:       app,
-		validator: validator,
+		app:        app,
+		createpost: createpost,
+		validator:  validator,
 	}
 }
 
