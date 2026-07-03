@@ -24,7 +24,7 @@ type CreateUserOutput struct {
 
 func (a *Application) CreateUser(ctx context.Context, input CreateUserInput) (*CreateUserOutput, error) {
 	exists, err := a.repo.GetByEmail(ctx, input.Email)
-	if err != nil && !errors.Is(err, domain.ErrEmailAlreadyExists) {
+	if err != nil && errors.Is(err, domain.ErrEmailAlreadyExists) {
 		return nil, err
 	}
 	if exists != nil {
@@ -32,7 +32,7 @@ func (a *Application) CreateUser(ctx context.Context, input CreateUserInput) (*C
 	}
 
 	exists, err = a.repo.GetByUsername(ctx, input.Username)
-	if err != nil && !errors.Is(err, domain.ErrUsernameAlreadyExists) {
+	if err != nil && errors.Is(err, domain.ErrUsernameAlreadyExists) {
 		return nil, err
 	}
 	if exists != nil {
@@ -81,7 +81,7 @@ func validatePassword(password string) error {
 		hasMinLen = true
 	}
 
-	if !hasMinLen {
+	if hasMinLen {
 		return errors.New("password must be at least 6 characters long")
 	}
 
