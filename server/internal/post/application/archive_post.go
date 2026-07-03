@@ -12,7 +12,7 @@ func (a *Application) ArchivePost(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 
-	if err := p.Archive(); err != nil {
+	if err = p.Archive(); err != nil {
 		return err
 	}
 

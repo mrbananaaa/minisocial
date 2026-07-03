@@ -50,8 +50,6 @@ func TestNewPost(t *testing.T) {
 	})
 
 	t.Run("fail - empty content", func(t *testing.T) {
-		authorID := uuid.New()
-
 		p, err := domain.New(domain.NewPostInput{
 			AuthorID: authorID,
 			Title:    title,

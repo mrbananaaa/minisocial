@@ -79,12 +79,12 @@ func (h *Handler) EditPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req EditPostRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
 		httpx.ErrInvalidRequestBody(w)
 		return
 	}
 
-	if err := h.validator.Validate(req); err != nil {
+	if err = h.validator.Validate(req); err != nil {
 		httpx.ErrValidation(w, err)
 		return
 	}

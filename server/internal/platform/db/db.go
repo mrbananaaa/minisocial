@@ -16,7 +16,7 @@ type Database struct {
 func New(ctx context.Context, cfg config.DatabaseConfig) (*Database, error) {
 	pool, err := pgxpool.New(ctx, cfg.URL)
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't open pgx pool: %v", err)
+		return nil, fmt.Errorf("couldn't open pgx pool: %v", err)
 	}
 
 	db := &Database{
@@ -24,7 +24,7 @@ func New(ctx context.Context, cfg config.DatabaseConfig) (*Database, error) {
 	}
 
 	if err := db.Health(ctx); err != nil {
-		return nil, fmt.Errorf("Couldn't reach database: %v", err)
+		return nil, fmt.Errorf("couldn't reach database: %v", err)
 	}
 
 	return db, nil

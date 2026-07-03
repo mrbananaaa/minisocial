@@ -60,8 +60,7 @@ func ErrValidation(w http.ResponseWriter, err error) {
 		return
 	}
 
-	var validationError *validation.ValidationError
-	if errors.As(err, &validationError) {
+	if validationError, ok := errors.AsType[*validation.ValidationError](err); ok {
 		Error(
 			w,
 			http.StatusBadRequest,

@@ -29,7 +29,7 @@ func (a *Application) EditPost(ctx context.Context, input EditPostInput) (*domai
 		uc = *input.Content
 	}
 
-	if err := p.Edit(ut, uc); err != nil {
+	if err = p.Edit(ut, uc); err != nil {
 		return nil, err
 	}
 

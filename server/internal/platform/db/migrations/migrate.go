@@ -19,17 +19,17 @@ func Migrate(ctx context.Context, pool *pgxpool.Pool) error {
 	defer dbconn.Close()
 
 	if err := dbconn.Ping(); err != nil {
-		return fmt.Errorf("Couldn't reach database: %v", err)
+		return fmt.Errorf("couldn't reach database: %v", err)
 	}
 
 	if err := goose.SetDialect("postgres"); err != nil {
-		return fmt.Errorf("Failed to select dialect: %v", err)
+		return fmt.Errorf("failed to select dialect: %v", err)
 	}
 	goose.SetBaseFS(migrationsFS)
 	goose.SetLogger(goose.NopLogger())
 
 	if err := goose.UpContext(ctx, dbconn, "."); err != nil {
-		return fmt.Errorf("Failed to migrate database: %v", err)
+		return fmt.Errorf("failed to migrate database: %v", err)
 	}
 
 	return nil

@@ -25,7 +25,7 @@ func New(opts ...Option) *Validator {
 	}
 
 	v.validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
-		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+		name, _, _ := strings.Cut(fld.Tag.Get("json"), ",")
 
 		if name == "-" {
 			return ""
@@ -43,8 +43,7 @@ func (v *Validator) Validate(val any) error {
 		return nil
 	}
 
-	var validationErrors validator.ValidationErrors
-	if errors.As(err, &validationErrors) {
+	if validationErrors, ok := errors.AsType[validator.ValidationErrors](err); ok {
 		return NewValidationError(validationErrors)
 	}
 

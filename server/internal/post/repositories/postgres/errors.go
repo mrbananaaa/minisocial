@@ -22,8 +22,7 @@ func mapError(err error) error {
 		return domain.ErrPostNotFound
 	}
 
-	var pgErr *pgconn.PgError
-	if errors.As(err, &pgErr) {
+	if pgErr, ok := errors.AsType[*pgconn.PgError](err); ok {
 		switch pgErr.ConstraintName {
 		case slugUniqueConstraint:
 			return domain.ErrPostSlugAlreadyExists

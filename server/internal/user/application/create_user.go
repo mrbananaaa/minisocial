@@ -39,7 +39,7 @@ func (a *Application) CreateUser(ctx context.Context, input CreateUserInput) (*C
 		return nil, domain.ErrUsernameAlreadyExists
 	}
 
-	if err := validatePassword(input.Password); err != nil {
+	if err = validatePassword(input.Password); err != nil {
 		return nil, err
 	}
 

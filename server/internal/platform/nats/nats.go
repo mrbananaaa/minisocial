@@ -11,11 +11,11 @@ import (
 func New(cfg config.NATSConfig) (*nats.Conn, error) {
 	conn, err := nats.Connect(cfg.URL)
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't connect to nats server: %v", err)
+		return nil, fmt.Errorf("couldn't connect to nats server: %v", err)
 	}
 
 	if !conn.IsConnected() {
-		return nil, fmt.Errorf("Nats disconnected")
+		return nil, fmt.Errorf("nats disconnected")
 	}
 
 	return conn, nil
