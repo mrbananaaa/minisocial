@@ -48,7 +48,7 @@ func New(input NewPostInput) (*Post, error) {
 		ID:         uuid.New(),
 		AuthorID:   input.AuthorID,
 		Title:      input.Title,
-		Slug:       "", // generate slug later
+		Slug:       uuid.NewString(), // generate slug later
 		Content:    input.Content,
 		Status:     StatusDraft,
 		CreatedAt:  now,
