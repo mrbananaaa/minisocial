@@ -1,3 +1,4 @@
+// Package migrations contain db migrations using goose as migration library
 package migrations
 
 import (

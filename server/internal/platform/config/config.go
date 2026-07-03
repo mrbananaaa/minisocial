@@ -1,3 +1,4 @@
+// Package config contain internal app configurations
 package config
 
 type Config struct {

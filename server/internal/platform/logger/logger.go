@@ -1,3 +1,4 @@
+// Package logger contain configuration and logger wrapper
 package logger
 
 import (

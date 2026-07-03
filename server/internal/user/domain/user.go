@@ -1,3 +1,4 @@
+// Package domain user
 package domain
 
 import (

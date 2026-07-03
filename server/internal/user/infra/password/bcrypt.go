@@ -1,3 +1,4 @@
+// Package password contain password hasher implementation for user module
 package password
 
 import "golang.org/x/crypto/bcrypt"

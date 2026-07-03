@@ -1,3 +1,4 @@
+// Package postgres contain repository implementation for post module
 package postgres
 
 import (

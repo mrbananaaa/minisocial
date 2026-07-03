@@ -1,3 +1,4 @@
+// Package createpost contain creating post workflow logic
 package createpost
 
 import (

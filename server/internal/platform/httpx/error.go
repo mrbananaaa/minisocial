@@ -1,3 +1,4 @@
+// Package httpx contain http related helper like sending response helper
 package httpx
 
 import (

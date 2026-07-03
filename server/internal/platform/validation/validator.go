@@ -1,3 +1,4 @@
+// Package validation contain validation implementation aka go-playground/validator wrapper
 package validation
 
 import (

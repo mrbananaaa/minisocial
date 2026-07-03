@@ -1,3 +1,4 @@
+// Package app composition root
 package app
 
 import (

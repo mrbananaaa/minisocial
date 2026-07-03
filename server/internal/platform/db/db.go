@@ -1,3 +1,4 @@
+// Package db postgres connection and helper
 package db
 
 import (

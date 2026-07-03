@@ -1,3 +1,4 @@
+// Package domain post
 package domain
 
 import (

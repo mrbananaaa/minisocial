@@ -1,3 +1,4 @@
+// Package nats wrapping nats client implementation
 package nats
 
 import (

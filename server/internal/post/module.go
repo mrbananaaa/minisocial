@@ -1,3 +1,4 @@
+// Package post module
 package post
 
 import (
