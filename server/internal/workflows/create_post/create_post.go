@@ -57,8 +57,6 @@ type Output struct {
 	UpdatedAt time.Time
 }
 
-// Execute ...
-// TODO: Test this manually on the handler LOL 😂
 func (w *Workflow) Execute(
 	ctx context.Context,
 	input Input,
