@@ -19,10 +19,10 @@ func (a *Application) CreatePost(ctx context.Context, input CreatePostInput) (*d
 		return nil, err
 	}
 
-	post, err := a.repo.Create(ctx, p)
+	err = a.repo.Create(ctx, p)
 	if err != nil {
 		return nil, err
 	}
 
-	return post, nil
+	return p, nil
 }

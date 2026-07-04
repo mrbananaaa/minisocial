@@ -30,15 +30,11 @@ func (r *Repository) query(ctx context.Context) *sqlc.Queries {
 	return r.q
 }
 
-func (r *Repository) Create(ctx context.Context, post *domain.Post) (*domain.Post, error) {
+func (r *Repository) Create(ctx context.Context, post *domain.Post) error {
 	q := r.query(ctx)
 
-	row, err := q.CreatePost(ctx, fromDomain[sqlc.CreatePostParams](post))
-	if err != nil {
-		return nil, mapError(err)
-	}
-
-	return toDomain(row), nil
+	_, err := q.CreatePost(ctx, fromDomain[sqlc.CreatePostParams](post))
+	return mapError(err)
 }
 
 func (r *Repository) Update(ctx context.Context, post *domain.Post) error {
