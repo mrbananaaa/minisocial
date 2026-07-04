@@ -26,6 +26,19 @@ type Post struct {
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 	ArchivedAt *time.Time
+
+	events []Event
+}
+
+func (p *Post) record(event Event) {
+	p.events = append(p.events, event)
+}
+
+func (p *Post) PullEvents() []Event {
+	events := p.events
+	p.events = nil
+
+	return events
 }
 
 type NewPostInput struct {
@@ -44,8 +57,7 @@ func New(input NewPostInput) (*Post, error) {
 	}
 
 	now := time.Now()
-
-	return &Post{
+	post := &Post{
 		ID:         uuid.New(),
 		AuthorID:   input.AuthorID,
 		Title:      input.Title,
@@ -55,7 +67,15 @@ func New(input NewPostInput) (*Post, error) {
 		CreatedAt:  now,
 		UpdatedAt:  now,
 		ArchivedAt: nil,
-	}, nil
+	}
+
+	post.record(PostCreated{
+		PostID:   post.ID,
+		AuthorID: post.AuthorID,
+		Title:    post.Title,
+	})
+
+	return post, nil
 }
 
 func (p *Post) Edit(title, content string) error {
