@@ -171,8 +171,14 @@ internal/
   - SQLC integration
   - Repository participation
   - Cross-module transaction
-- Episode 6 - Domain Events
+- Episode 6 — Discovering Domain Events
   - Not NATS yet, pure domain events
+  - ✅ Events are business facts.
+  - ✅ Aggregates record them.
+  - ✅ Repositories preserve aggregate identity.
+  - ✅ PullEvents transfers ownership.
+  - ✅ No dispatching.
+  - ✅ No collector implementation yet.
 - Episode 7 - Event Dispatcher
   - Application → Dispatcher
   - Dispatcher → Handlers
