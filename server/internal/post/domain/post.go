@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/mrbananaaa/minisocial/internal/domain"
+	"github.com/mrbananaaa/minisocial/internal/platform/events"
 )
 
 type Status string
@@ -27,14 +29,14 @@ type Post struct {
 	UpdatedAt  time.Time
 	ArchivedAt *time.Time
 
-	events []Event
+	events []events.Event
 }
 
-func (p *Post) record(event Event) {
+func (p *Post) record(event domain.Event) {
 	p.events = append(p.events, event)
 }
 
-func (p *Post) PullEvents() []Event {
+func (p *Post) PullEvents() []events.Event {
 	events := p.events
 	p.events = nil
 
