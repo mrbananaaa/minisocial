@@ -14,8 +14,6 @@ type CreatePostInput struct {
 }
 
 func (a *Application) CreatePost(ctx context.Context, input CreatePostInput) (*domain.Post, error) {
-	// TODO: check if author id is valid user
-
 	p, err := domain.New(domain.NewPostInput(input))
 	if err != nil {
 		return nil, err
