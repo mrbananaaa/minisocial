@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/mrbananaaa/minisocial/internal/domain"
 	"github.com/mrbananaaa/minisocial/internal/platform/events"
 )
 
@@ -32,7 +31,7 @@ type Post struct {
 	events []events.Event
 }
 
-func (p *Post) record(event domain.Event) {
+func (p *Post) record(event events.Event) {
 	p.events = append(p.events, event)
 }
 
