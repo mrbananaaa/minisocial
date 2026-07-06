@@ -5,7 +5,6 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/mrbananaaa/minisocial/internal/platform/events"
 )
 
 type txKey struct{}
@@ -48,10 +47,7 @@ func (m *TxManager) WithTx(
 		_ = tx.Rollback(ctx)
 	}()
 
-	// INFO: use collector for testing or example, remove this latter
-	collector := events.NewCollector()
 	txCtx := withTx(ctx, tx)
-	txCtx = events.ContextWithCollector(txCtx, collector)
 	if err := fn(txCtx); err != nil {
 		return err
 	}

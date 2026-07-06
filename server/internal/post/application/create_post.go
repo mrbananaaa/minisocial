@@ -32,10 +32,5 @@ func (a *Application) CreatePost(
 		return nil, err
 	}
 
-	collector, ok := events.CollectorFromContext(ctx)
-	if ok {
-		collector.Track(p)
-	}
-
 	return p, nil
 }
