@@ -2,9 +2,12 @@ package jetstream
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/mrbananaaa/minisocial/internal/platform/messaging"
 	"github.com/nats-io/nats.go"
@@ -40,7 +43,19 @@ func (b *JetStreamBroker) Connect(ctx context.Context) error {
 	}
 	b.js = js
 
-	// TODO: create events stream
+	_, err = b.js.Stream(ctx, b.streamName)
+	if err != nil && errors.Is(err, jetstream.ErrStreamNotFound) {
+		_, err = js.CreateOrUpdateStream(ctx, jetstream.StreamConfig{
+			Name:        b.streamName,
+			Description: "Events stream",
+			Subjects:    []string{b.prefix + ".>"},
+			Retention:   jetstream.LimitsPolicy,
+			MaxAge:      24 * time.Hour,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to create %s stream: %w", b.streamName, err)
+		}
+	}
 
 	return nil
 }
@@ -70,7 +85,7 @@ func (b *JetStreamBroker) Publish(ctx context.Context, topic string, payload []b
 	return nil
 }
 
-func (b *JetStreamBroker) Subcscribe(
+func (b *JetStreamBroker) Subscribe(
 	ctx context.Context,
 	topic string,
 ) (messaging.SubscribtionPayload, error) {
@@ -82,9 +97,10 @@ func (b *JetStreamBroker) Subcscribe(
 	}
 
 	// WARN: Hardcoder consumer config
+	durableName := fmt.Sprintf("EVENT_PROCESSOR_%s", strings.ReplaceAll(topic, ".", "_"))
 	consumerCfg := jetstream.ConsumerConfig{
 		FilterSubject: subject,
-		Durable:       "EVENTS_PROCESSOR",
+		Durable:       durableName,
 		AckPolicy:     jetstream.AckExplicitPolicy,
 	}
 	cons, err := stream.CreateOrUpdateConsumer(ctx, consumerCfg)
@@ -92,45 +108,61 @@ func (b *JetStreamBroker) Subcscribe(
 		return messaging.SubscribtionPayload{}, fmt.Errorf("failed to create or update consumer: %w", err)
 	}
 
-	messageChan := make(chan messaging.Message)
-	errChan := make(chan error)
+	messageChan := make(chan messaging.Message, 64)
+	errChan := make(chan error, 64)
 
-	go func() {
-		defer func() {
-			close(messageChan)
-			close(errChan)
-		}()
+	var closeOnce sync.Once
 
-		consCtx, err := cons.Consume(func(msg jetstream.Msg) {
-			meta, err := msg.Metadata()
-			if err != nil {
-				errChan <- err
-			}
-
-			m := messaging.Message{
-				ID:      strconv.FormatUint(meta.Sequence.Stream, 10),
-				Topic:   b.fromPrefix(msg.Subject()),
-				Payload: msg.Data(),
-				AckFunc: func() error { return msg.Ack() },
-			}
-
-			select {
-			case messageChan <- m:
-			case <-ctx.Done():
-				return
-			}
-		})
+	consCtx, err := cons.Consume(func(msg jetstream.Msg) {
+		meta, err := msg.Metadata()
 		if err != nil {
+			select {
+			case errChan <- err:
+			case <-ctx.Done():
+			}
 			return
 		}
 
+		m := messaging.Message{
+			ID:      strconv.FormatUint(meta.Sequence.Stream, 10),
+			Topic:   b.fromPrefix(msg.Subject()),
+			Payload: msg.Data(),
+			AckFunc: func() error { return msg.Ack() },
+		}
+
+		select {
+		case messageChan <- m:
+		case <-ctx.Done():
+			return
+		}
+	})
+	if err != nil {
+		close(messageChan)
+		close(errChan)
+
+		return messaging.SubscribtionPayload{}, fmt.Errorf("failed to start consume: %w", err)
+	}
+
+	closeFunc := func() {
+		closeOnce.Do(func() {
+			consCtx.Stop()
+		})
+	}
+
+	go func() {
 		<-ctx.Done()
-		consCtx.Stop()
+		closeFunc()
+
+		// wait for nats stopping all active task then close the channel
+		time.Sleep(200 * time.Millisecond)
+		close(messageChan)
+		close(errChan)
 	}()
 
 	return messaging.SubscribtionPayload{
 		Event:   messageChan,
 		ErrChan: errChan,
+		Close:   closeFunc,
 	}, nil
 }
 
@@ -139,5 +171,5 @@ func (b *JetStreamBroker) withPrefix(subject string) string {
 }
 
 func (b *JetStreamBroker) fromPrefix(subject string) string {
-	return strings.TrimPrefix(subject, b.prefix)
+	return strings.TrimPrefix(subject, b.prefix+".")
 }
