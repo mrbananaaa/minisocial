@@ -3,13 +3,12 @@ package events
 import (
 	"context"
 	"log/slog"
-
-	"github.com/mrbananaaa/minisocial/internal/platform/messaging"
 )
 
 type Worker struct {
 	consumer   Consumer
 	dispatcher *Dispatcher
+	executor   *Executor
 	logger     *slog.Logger
 }
 
@@ -21,6 +20,7 @@ func NewWorker(
 	return &Worker{
 		consumer:   consumer,
 		dispatcher: dispatcher,
+		executor:   NewExecutor(dispatcher),
 		logger:     logger.With("[INFRA]", "event_worker"),
 	}
 }
@@ -42,24 +42,20 @@ func (w *Worker) Run(ctx context.Context) {
 	w.logger.Info("Event worker is listening ✨")
 	for {
 		select {
-		case evt, ok := <-sub.Messages():
+		case env, ok := <-sub.Messages():
 			if !ok {
 				return
 			}
-			evtMsg := toEventMessage(evt)
 
-			handlers := w.dispatcher.Handlers(evt.Topic)
-			// WARN: concurrent later
-			for _, handler := range handlers {
-				if err := handler.Handle(ctx, evtMsg); err != nil {
-					w.logger.Error("event handler error",
-						"err", err.Error(),
-					)
-					continue
-				}
+			if err := w.executor.Execute(ctx, env); err != nil && len(err.Errors) > 0 {
+				w.logger.Error("failed to execute event",
+					"err", err.Errors,
+				)
+
+				continue
 			}
 
-			evt.Ack()
+			env.Ack()
 
 		case err, ok := <-sub.Errors():
 			if !ok {
@@ -72,12 +68,5 @@ func (w *Worker) Run(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		}
-	}
-}
-
-func toEventMessage(m messaging.Envelope) EventMessage {
-	return EventMessage{
-		Topic:   m.Topic,
-		Payload: m.Payload,
 	}
 }

@@ -19,7 +19,7 @@ func (d *Dispatcher) Register(handlers ...EventHandler) {
 	}
 }
 
-func (d *Dispatcher) Handlers(
+func (d *Dispatcher) Resolve(
 	eventType string,
 ) []EventHandler {
 	return d.handlers[eventType]
