@@ -10,7 +10,6 @@ import (
 	"github.com/mrbananaaa/minisocial/internal/platform/httpx"
 	"github.com/mrbananaaa/minisocial/internal/platform/validation"
 	"github.com/mrbananaaa/minisocial/internal/post/application"
-	"github.com/mrbananaaa/minisocial/internal/post/domain"
 	createpost "github.com/mrbananaaa/minisocial/internal/workflows/create_post"
 )
 
@@ -46,7 +45,8 @@ func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// db60cc82-3ff6-4c89-a16b-60c340f18f3c admin
-	userID, _ := uuid.Parse("db60cc82-3ff6-4c89-a16b-60c340f18f3c")
+	// bc481a67-6272-4137-a449-4890d6d76b34 another admin
+	userID, _ := uuid.Parse("bc481a67-6272-4137-a449-4890d6d76b34")
 	out, err := h.createpost.Execute(r.Context(), createpost.Input{
 		// TODO: extract user from context
 		AuthorID: userID,
@@ -58,16 +58,16 @@ func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpx.Res(w, http.StatusCreated, "post created", toPostResponse(&domain.Post{
+	httpx.Res(w, http.StatusCreated, "post created", PostResponse{
 		ID:        out.ID,
 		AuthorID:  out.AuthorID,
 		Title:     out.Title,
 		Slug:      out.Slug,
 		Content:   out.Content,
-		Status:    out.Status,
+		Status:    string(out.Status),
 		CreatedAt: out.CreatedAt,
 		UpdatedAt: out.UpdatedAt,
-	}))
+	})
 }
 
 func (h *Handler) EditPost(w http.ResponseWriter, r *http.Request) {
