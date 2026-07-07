@@ -18,11 +18,7 @@ type CreateUserInput struct {
 	Password string
 }
 
-type CreateUserOutput struct {
-	User *domain.User
-}
-
-func (a *Application) CreateUser(ctx context.Context, input CreateUserInput) (*CreateUserOutput, error) {
+func (a *Application) CreateUser(ctx context.Context, input CreateUserInput) (*domain.User, error) {
 	exists, err := a.repo.GetByEmail(ctx, input.Email)
 	if err != nil && errors.Is(err, domain.ErrEmailAlreadyExists) {
 		return nil, err
@@ -58,14 +54,11 @@ func (a *Application) CreateUser(ctx context.Context, input CreateUserInput) (*C
 		UpdatedAt:    time.Now(),
 	}
 
-	user, err = a.repo.Create(ctx, user)
-	if err != nil {
+	if err := a.repo.Create(ctx, user); err != nil {
 		return nil, err
 	}
 
-	return &CreateUserOutput{
-		User: user,
-	}, nil
+	return user, nil
 }
 
 func validatePassword(password string) error {
