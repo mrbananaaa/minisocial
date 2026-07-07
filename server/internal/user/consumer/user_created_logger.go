@@ -31,6 +31,7 @@ func (h *UserCreatedLoggerHandler) Handle(ctx context.Context, evtMsg events.Eve
 	}
 
 	h.logger.Info("new user created",
+		"topic", evtMsg.Topic,
 		"id", payload.UserID,
 		"email", payload.Email,
 	)

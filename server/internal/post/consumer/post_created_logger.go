@@ -31,6 +31,7 @@ func (h *PostCreatedLoggerHandler) Handle(ctx context.Context, evtMsg events.Eve
 	}
 
 	h.logger.Info("new post created",
+		"topic", evtMsg.Topic,
 		"id", payload.PostID,
 		"title", payload.Title,
 	)
