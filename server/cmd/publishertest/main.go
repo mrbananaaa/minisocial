@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/brianvoe/gofakeit/v7"
@@ -35,23 +36,30 @@ func main() {
 	ticker := time.NewTicker(3 * time.Second)
 	defer ticker.Stop()
 
+	var wg sync.WaitGroup
+
 	for {
 		select {
 		case <-ticker.C:
-			if err := createUser(ctx, broker); err != nil {
-				log.Error("failed to create user event",
-					"err", err.Error(),
-				)
-				continue
-			}
+			wg.Go(func() {
+				if err := createUser(ctx, broker); err != nil {
+					log.Error("failed to create user event",
+						"err", err.Error(),
+					)
+					return
+				}
+			})
 
-			if err := createPost(ctx, broker); err != nil {
-				log.Error("failed to create post event",
-					"err", err.Error(),
-				)
-				continue
-			}
+			wg.Go(func() {
+				if err := createPost(ctx, broker); err != nil {
+					log.Error("failed to create post event",
+						"err", err.Error(),
+					)
+					return
+				}
+			})
 
+			wg.Wait()
 			log.Info("event published!")
 
 		case <-ctx.Done():
