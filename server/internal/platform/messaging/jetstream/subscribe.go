@@ -103,6 +103,7 @@ func (b *JetStreamBroker) subscribe(
 		})
 	}
 
+	// watch context and clean everything on ctx.Done
 	go func() {
 		<-ctx.Done()
 		closeFn()
