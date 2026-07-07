@@ -31,7 +31,7 @@ type Post struct {
 	events []events.Event
 }
 
-func (p *Post) record(event events.Event) {
+func (p *Post) addEvent(event events.Event) {
 	p.events = append(p.events, event)
 }
 
@@ -70,7 +70,7 @@ func New(input NewPostInput) (*Post, error) {
 		ArchivedAt: nil,
 	}
 
-	post.record(PostCreated{
+	post.addEvent(PostCreated{
 		PostID:   post.ID,
 		AuthorID: post.AuthorID,
 		Title:    post.Title,
