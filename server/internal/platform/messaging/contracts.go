@@ -15,7 +15,7 @@ func (m *Message) Ack() error {
 }
 
 type SubscribtionPayload struct {
-	Event   <-chan Message
-	ErrChan <-chan error
+	Message <-chan Message
+	Errors  <-chan error
 	Close   func()
 }
