@@ -97,7 +97,9 @@ func (b *JetStreamBroker) Subscribe(
 	}
 
 	// WARN: Hardcoder consumer config
-	durableName := fmt.Sprintf("EVENT_PROCESSOR_%s", strings.ReplaceAll(topic, ".", "_"))
+	// TODO: Pass durable name
+	// durableName := fmt.Sprintf("EVENT_PROCESSOR_%s", strings.ReplaceAll(topic, ".", "_"))
+	durableName := fmt.Sprintf("EVENT_PROCESSOR_%s", "minisocial")
 	consumerCfg := jetstream.ConsumerConfig{
 		FilterSubject: subject,
 		Durable:       durableName,
@@ -160,8 +162,8 @@ func (b *JetStreamBroker) Subscribe(
 	}()
 
 	return messaging.SubscribtionPayload{
-		Event:   messageChan,
-		ErrChan: errChan,
+		Message: messageChan,
+		Errors:  errChan,
 		Close:   closeFunc,
 	}, nil
 }
