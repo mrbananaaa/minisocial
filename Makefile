@@ -1,25 +1,41 @@
 DEV_COMPOSE_FILE := docker-compose.dev.yaml
 
-.PHONY: compose-dev-up-build
-compose-dev-up-build:
+.PHONY: compose-up-build
+compose-up-build:
 	@docker compose -f $(DEV_COMPOSE_FILE) up --build -d
 
-.PHONY: compose-dev-up
-compose-dev-up:
+.PHONY: compose-up
+compose-up:
 	@docker compose -f $(DEV_COMPOSE_FILE) up -d
 
-.PHONY: compose-dev-restart
-compose-dev-restart:
+.PHONY: compose-restart
+compose-restart:
 	@docker compose -f $(DEV_COMPOSE_FILE) restart
 
-.PHONY: compose-dev-down
-compose-dev-down:
+.PHONY: compose-down-prune
+compose-down-prune:
+	@docker compose -f $(DEV_COMPOSE_FILE) down -v
+
+.PHONY: compose-down
+compose-down:
 	@docker compose -f $(DEV_COMPOSE_FILE) down
 
-.PHONY: compose-dev-logs
-compose-dev-logs:
+.PHONY: compose-logs
+compose-logs:
 	@docker compose -f $(DEV_COMPOSE_FILE) logs -f
 
 .PHONY: psql
 psql:
 	@docker compose -f $(DEV_COMPOSE_FILE) exec -it postgres psql -d minisocial -U postgres
+
+.PHONY: help
+help:
+	@echo "Available command:"
+	@echo " * compose-up-build"
+	@echo " * compose-up"
+	@echo " * compose-restart"
+	@echo " * compose-down-prune"
+	@echo " * compose-down"
+	@echo " * compose-logs"
+	@echo " * psql"
+	@echo " * help"
