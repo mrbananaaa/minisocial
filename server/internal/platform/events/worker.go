@@ -26,7 +26,7 @@ func NewWorker(
 }
 
 func (w *Worker) Run(ctx context.Context) {
-	sub, err := w.consumer.Subscribe(ctx, ">")
+	sub, err := w.consumer.Subscribe(ctx, "*")
 	if err != nil {
 		w.logger.Error("failed to subscribe",
 			"err", err.Error(),
