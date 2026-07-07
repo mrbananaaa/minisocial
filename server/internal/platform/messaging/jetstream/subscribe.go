@@ -19,7 +19,7 @@ func (b *JetStreamBroker) Subscribe(
 		return nil, err
 	}
 
-	consumer, err := b.consumer(ctx, stream, topic)
+	consumer, err := b.createConsumer(ctx, stream, topic)
 	if err != nil {
 		return nil, err
 	}
@@ -43,11 +43,14 @@ func (b *JetStreamBroker) stream(
 	return stream, nil
 }
 
-func (b *JetStreamBroker) consumer(
+func (b *JetStreamBroker) createConsumer(
 	ctx context.Context,
 	stream jetstream.Stream,
 	topic string,
 ) (jetstream.Consumer, error) {
+	if topic == "*" {
+		topic = ">"
+	}
 
 	cfg := jetstream.ConsumerConfig{
 		Durable:       "EVENT_PROCESSOR_MINISOCIAL",
