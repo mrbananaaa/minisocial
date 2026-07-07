@@ -22,21 +22,26 @@ func (a *Application) UpdateProfile(ctx context.Context, input UpdateProfileInpu
 	}
 
 	if strings.TrimSpace(input.Name) != "" {
-		user.Name = input.Name
+		if err := user.UpdateName(input.Name); err != nil {
+			return nil, err
+		}
 	}
 
 	if strings.TrimSpace(input.Bio) != "" {
-		user.Bio = input.Bio
+		if err := user.UpdateBio(input.Bio); err != nil {
+			return nil, err
+		}
 	}
 
 	if strings.TrimSpace(input.AvatarURL) != "" {
-		user.AvatarURL = input.AvatarURL
+		if err := user.UpdateAvatarURL(input.AvatarURL); err != nil {
+			return nil, err
+		}
 	}
 
-	updatedUser, err := a.repo.Update(ctx, user)
-	if err != nil {
+	if err := a.repo.Update(ctx, user); err != nil {
 		return nil, err
 	}
 
-	return updatedUser, nil
+	return user, nil
 }
