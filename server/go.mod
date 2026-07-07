@@ -3,6 +3,8 @@ module github.com/mrbananaaa/minisocial
 go 1.26.1
 
 require (
+	github.com/Marlliton/slogpretty v0.1.3
+	github.com/brianvoe/gofakeit/v7 v7.15.0
 	github.com/go-chi/chi/v5 v5.3.0
 	github.com/go-chi/cors v1.2.2
 	github.com/go-playground/validator/v10 v10.30.3
