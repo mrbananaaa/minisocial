@@ -3,7 +3,6 @@ package postgres
 
 import (
 	"context"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/mrbananaaa/minisocial/internal/platform/db"
@@ -31,15 +30,12 @@ func (r *Repository) query(ctx context.Context) *sqlc.Queries {
 	return r.q
 }
 
-func (r *Repository) Create(ctx context.Context, user *domain.User) (*domain.User, error) {
+func (r *Repository) Create(ctx context.Context, user *domain.User) error {
 	q := r.query(ctx)
 
-	row, err := q.CreateUser(ctx, fromDomain(user))
-	if err != nil {
-		return nil, mapError(err)
-	}
+	_, err := q.CreateUser(ctx, fromDomain(user))
 
-	return toDomain(row), nil
+	return mapError(err)
 }
 
 func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (*domain.User, error) {
@@ -75,21 +71,18 @@ func (r *Repository) GetByUsername(ctx context.Context, username string) (*domai
 	return toDomain(row), nil
 }
 
-func (r *Repository) Update(ctx context.Context, user *domain.User) (*domain.User, error) {
+func (r *Repository) Update(ctx context.Context, user *domain.User) error {
 	q := r.query(ctx)
 
-	row, err := q.UpdateUser(ctx, sqlc.UpdateUserParams{
+	_, err := q.UpdateUser(ctx, sqlc.UpdateUserParams{
 		ID:        user.ID,
 		Name:      user.Name,
 		Bio:       &user.Bio,
 		AvatarUrl: &user.AvatarURL,
-		UpdatedAt: time.Now(),
+		UpdatedAt: user.UpdatedAt,
 	})
-	if err != nil {
-		return nil, mapError(err)
-	}
 
-	return toDomain(row), nil
+	return mapError(err)
 }
 
 func (r *Repository) Delete(ctx context.Context, id uuid.UUID) error {
