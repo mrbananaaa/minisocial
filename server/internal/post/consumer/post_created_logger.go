@@ -10,31 +10,36 @@ import (
 	"github.com/mrbananaaa/minisocial/internal/post/domain"
 )
 
-type PostCreatedLoggerHandler struct {
+type LoggerHandler struct {
 	logger *slog.Logger
 }
 
-func NewPostCreatedLoggerHandler(log *slog.Logger) *PostCreatedLoggerHandler {
-	return &PostCreatedLoggerHandler{
+func NewLoggerHandler(log *slog.Logger) *LoggerHandler {
+	return &LoggerHandler{
 		logger: log,
 	}
 }
 
-func (h *PostCreatedLoggerHandler) EventType() string {
+func (h *LoggerHandler) EventType() string {
 	return string(domain.EvPostCreated)
 }
 
-func (h *PostCreatedLoggerHandler) Handle(ctx context.Context, evtMsg events.EventMessage) error {
+func (h *LoggerHandler) Handle(
+	ctx context.Context,
+	event events.EventContext,
+) error {
 	var payload domain.PostCreated
-	if err := json.Unmarshal(evtMsg.Payload, &payload); err != nil {
+	if err := json.Unmarshal(event.Envelope.Payload, &payload); err != nil {
 		return fmt.Errorf("failed to marshal event: %w", err)
 	}
 
-	h.logger.Info("new post created",
-		"topic", evtMsg.Topic,
-		"id", payload.PostID,
-		"title", payload.Title,
-	)
+	h.logger.
+		With("[CONSUMER]", "post.created_logger").
+		Info("new post created",
+			"topic", event.Envelope.Topic,
+			"id", payload.PostID,
+			"title", payload.Title,
+		)
 
 	return nil
 }
