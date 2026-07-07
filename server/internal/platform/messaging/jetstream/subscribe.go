@@ -156,5 +156,6 @@ func (b *JetStreamBroker) envelope(
 		b.fromPrefix(msg.Subject()),
 		msg.Data(),
 		msg.Ack,
+		msg.Nak,
 	), nil
 }

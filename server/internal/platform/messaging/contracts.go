@@ -6,6 +6,7 @@ type Envelope struct {
 	Payload []byte
 
 	ack func() error
+	nak func() error
 }
 
 func NewEnvelope(
@@ -13,6 +14,7 @@ func NewEnvelope(
 	topic string,
 	payload []byte,
 	ack func() error,
+	nak func() error,
 ) Envelope {
 
 	return Envelope{
@@ -20,6 +22,7 @@ func NewEnvelope(
 		Topic:   topic,
 		Payload: payload,
 		ack:     ack,
+		nak:     nak,
 	}
 }
 
@@ -29,6 +32,14 @@ func (e Envelope) Ack() error {
 	}
 
 	return e.ack()
+}
+
+func (e Envelope) Nak() error {
+	if e.nak == nil {
+		return nil
+	}
+
+	return e.nak()
 }
 
 type Subscription struct {
@@ -42,7 +53,6 @@ func NewSubscription(
 	errors <-chan error,
 	closeFn func(),
 ) *Subscription {
-
 	return &Subscription{
 		messages: messages,
 		errors:   errors,
