@@ -33,11 +33,16 @@ func (w *Worker) Run(ctx context.Context) {
 		)
 		return
 	}
+	defer func() {
+		sub.Close()
 
-	w.logger.Info("event worker is running ✨")
+		w.logger.Info("Event worker is closed ⚠️")
+	}()
+
+	w.logger.Info("Event worker is listening ✨")
 	for {
 		select {
-		case evt, ok := <-sub.Message:
+		case evt, ok := <-sub.Messages():
 			if !ok {
 				return
 			}
@@ -54,21 +59,23 @@ func (w *Worker) Run(ctx context.Context) {
 				}
 			}
 
-			evt.AckFunc()
+			evt.Ack()
 
-		case err := <-sub.Errors:
+		case err, ok := <-sub.Errors():
+			if !ok {
+				return
+			}
 			w.logger.Info("Event error",
 				"err", err.Error(),
 			)
 
 		case <-ctx.Done():
-			w.logger.Info("event worker closed")
 			return
 		}
 	}
 }
 
-func toEventMessage(m messaging.Message) EventMessage {
+func toEventMessage(m messaging.Envelope) EventMessage {
 	return EventMessage{
 		Topic:   m.Topic,
 		Payload: m.Payload,

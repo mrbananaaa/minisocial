@@ -25,5 +25,5 @@ type EventHandler interface {
 }
 
 type Consumer interface {
-	Subscribe(ctx context.Context, topic string) (messaging.SubscribtionPayload, error)
+	Subscribe(ctx context.Context, topic string) (*messaging.Subscription, error)
 }

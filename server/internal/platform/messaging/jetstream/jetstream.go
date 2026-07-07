@@ -88,84 +88,146 @@ func (b *JetStreamBroker) Publish(ctx context.Context, topic string, payload []b
 func (b *JetStreamBroker) Subscribe(
 	ctx context.Context,
 	topic string,
-) (messaging.SubscribtionPayload, error) {
-	subject := b.withPrefix(topic)
+) (*messaging.Subscription, error) {
+	stream, err := b.stream(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	consumer, err := b.consumer(ctx, stream, topic)
+	if err != nil {
+		return nil, err
+	}
+
+	return b.subscribe(ctx, consumer)
+}
+
+func (b *JetStreamBroker) stream(
+	ctx context.Context,
+) (jetstream.Stream, error) {
 
 	stream, err := b.js.Stream(ctx, b.streamName)
 	if err != nil {
-		return messaging.SubscribtionPayload{}, fmt.Errorf("failed to find stream for subject %s: %w", b.streamName, err)
+		return nil, fmt.Errorf(
+			"find stream %q: %w",
+			b.streamName,
+			err,
+		)
 	}
 
-	// WARN: Hardcoder consumer config
-	// TODO: Pass durable name
-	// durableName := fmt.Sprintf("EVENT_PROCESSOR_%s", strings.ReplaceAll(topic, ".", "_"))
-	durableName := fmt.Sprintf("EVENT_PROCESSOR_%s", "minisocial")
-	consumerCfg := jetstream.ConsumerConfig{
-		FilterSubject: subject,
-		Durable:       durableName,
+	return stream, nil
+}
+
+func (b *JetStreamBroker) consumer(
+	ctx context.Context,
+	stream jetstream.Stream,
+	topic string,
+) (jetstream.Consumer, error) {
+
+	cfg := jetstream.ConsumerConfig{
+		Durable:       "EVENT_PROCESSOR_MINISOCIAL",
+		FilterSubject: b.withPrefix(topic),
 		AckPolicy:     jetstream.AckExplicitPolicy,
 	}
-	cons, err := stream.CreateOrUpdateConsumer(ctx, consumerCfg)
+
+	consumer, err := stream.CreateOrUpdateConsumer(
+		ctx,
+		cfg,
+	)
 	if err != nil {
-		return messaging.SubscribtionPayload{}, fmt.Errorf("failed to create or update consumer: %w", err)
+		return nil, fmt.Errorf(
+			"create consumer: %w",
+			err,
+		)
 	}
 
-	messageChan := make(chan messaging.Message, 64)
-	errChan := make(chan error, 64)
+	return consumer, nil
+}
 
-	var closeOnce sync.Once
+func (b *JetStreamBroker) subscribe(
+	ctx context.Context,
+	consumer jetstream.Consumer,
+) (*messaging.Subscription, error) {
 
-	consCtx, err := cons.Consume(func(msg jetstream.Msg) {
-		meta, err := msg.Metadata()
-		if err != nil {
-			select {
-			case errChan <- err:
-			case <-ctx.Done():
-			}
-			return
-		}
+	const buffer = 64
 
-		m := messaging.Message{
-			ID:      strconv.FormatUint(meta.Sequence.Stream, 10),
-			Topic:   b.fromPrefix(msg.Subject()),
-			Payload: msg.Data(),
-			AckFunc: func() error { return msg.Ack() },
-		}
+	messages := make(chan messaging.Envelope, buffer)
+	errs := make(chan error, buffer)
 
-		select {
-		case messageChan <- m:
-		case <-ctx.Done():
-			return
-		}
-	})
+	var once sync.Once
+
+	consumeCtx, err := consumer.Consume(
+		b.handler(ctx, messages, errs),
+	)
 	if err != nil {
-		close(messageChan)
-		close(errChan)
+		close(messages)
+		close(errs)
 
-		return messaging.SubscribtionPayload{}, fmt.Errorf("failed to start consume: %w", err)
+		return nil, err
 	}
 
-	closeFunc := func() {
-		closeOnce.Do(func() {
-			consCtx.Stop()
+	closeFn := func() {
+		once.Do(func() {
+			consumeCtx.Stop()
+
+			close(messages)
+			close(errs)
 		})
 	}
 
 	go func() {
 		<-ctx.Done()
-		closeFunc()
-
-		// wait for nats stopping all active task then close the channel
-		time.Sleep(200 * time.Millisecond)
-		close(messageChan)
-		close(errChan)
+		closeFn()
 	}()
 
-	return messaging.SubscribtionPayload{
-		Message: messageChan,
-		Errors:  errChan,
-		Close:   closeFunc,
-	}, nil
+	return messaging.NewSubscription(
+		messages,
+		errs,
+		closeFn,
+	), nil
+}
+
+func (b *JetStreamBroker) handler(
+	ctx context.Context,
+	messages chan<- messaging.Envelope,
+	errs chan<- error,
+) jetstream.MessageHandler {
+	return func(msg jetstream.Msg) {
+		env, err := b.envelope(msg)
+		if err != nil {
+			select {
+			case errs <- err:
+			case <-ctx.Done():
+			}
+			return
+		}
+
+		select {
+		case messages <- env:
+		case <-ctx.Done():
+			return
+		}
+	}
+}
+
+func (b *JetStreamBroker) envelope(
+	msg jetstream.Msg,
+) (messaging.Envelope, error) {
+
+	meta, err := msg.Metadata()
+	if err != nil {
+		return messaging.Envelope{}, err
+	}
+
+	return messaging.NewEnvelope(
+		strconv.FormatUint(
+			meta.Sequence.Stream,
+			10,
+		),
+		b.fromPrefix(msg.Subject()),
+		msg.Data(),
+		msg.Ack,
+	), nil
 }
 
 func (b *JetStreamBroker) withPrefix(subject string) string {
