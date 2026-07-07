@@ -56,8 +56,9 @@ func New(cfg *config.Config) (*App, error) {
 	dispatcher := events.NewDispatcher()
 
 	dispatcher.Register(
-		userConsumer.NewUserCreatedLoggerHandler(log),
-		postConsumer.NewPostCreatedLoggerHandler(log),
+		userConsumer.NewLoggerHandler(log),
+		postConsumer.NewLoggerHandler(log),
+		postConsumer.NewUserStatsHandler(log),
 	)
 
 	eventWorker := events.NewWorker(
@@ -127,8 +128,6 @@ func (a *App) Shutdown(ctx context.Context) error {
 	a.Log.Warn("App is shuting down...")
 	a.DB.Close()
 
-	// append each cleaning methods error
-	// then return it with erros.Join
 	var errs []error
 
 	if err := a.messageBroker.Close(ctx); err != nil {
