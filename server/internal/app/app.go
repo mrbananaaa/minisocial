@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/mrbananaaa/minisocial/internal/notification"
 	"github.com/mrbananaaa/minisocial/internal/platform/config"
 	"github.com/mrbananaaa/minisocial/internal/platform/db"
 	"github.com/mrbananaaa/minisocial/internal/platform/events"
@@ -69,10 +70,15 @@ func New(cfg *config.Config) (*App, error) {
 	)
 
 	txManager := db.NewTxManager(dbPool)
+	outboxRepo := outbox.NewRepository(dbPool)
 
 	userModule := user.New(dbPool)
 	postModule := post.New(dbPool)
-	outboxRepo := outbox.NewRepository(dbPool)
+	_ = notification.New(
+		dbPool,
+		messageBroker,
+		log,
+	)
 
 	createUserWorkflow := createuser.New(
 		userModule.Service(),
