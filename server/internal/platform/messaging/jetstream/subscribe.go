@@ -56,6 +56,7 @@ func (b *JetStreamBroker) createConsumer(
 		Durable:       "EVENT_PROCESSOR_MINISOCIAL",
 		FilterSubject: b.withPrefix(topic),
 		AckPolicy:     jetstream.AckExplicitPolicy,
+		MaxDeliver:    10,
 	}
 
 	consumer, err := stream.CreateOrUpdateConsumer(
