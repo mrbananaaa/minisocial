@@ -32,7 +32,9 @@ func (e *Executor) Execute(
 	var wg sync.WaitGroup
 	errChan := make(chan error, len(handlers))
 
-	for _, h := range handlers {
+	for _, handler := range handlers {
+		h := handler
+
 		wg.Go(func() {
 			err := h.Handle(ctx, EventContext{
 				Envelope: env,

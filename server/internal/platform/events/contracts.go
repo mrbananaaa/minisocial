@@ -14,15 +14,13 @@ type Event interface {
 	Payload() []byte
 }
 
-// TODO: unused for now
-
+// WARN: unused for now
 type EventMessage struct {
 	Topic   string
 	Payload []byte
 }
 
 // INFO: it's just a wrapper in case we need more fields
-
 type EventContext struct {
 	Envelope messaging.Envelope
 	EventID  string
