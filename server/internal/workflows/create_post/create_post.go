@@ -8,6 +8,8 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/mrbananaaa/minisocial/internal/platform/db"
+	"github.com/mrbananaaa/minisocial/internal/platform/events"
+	"github.com/mrbananaaa/minisocial/internal/platform/outbox"
 	userDomain "github.com/mrbananaaa/minisocial/internal/user/domain"
 
 	postApp "github.com/mrbananaaa/minisocial/internal/post/application"
@@ -15,9 +17,10 @@ import (
 )
 
 type Workflow struct {
-	users     UserService
-	posts     PostService
-	txManager *db.TxManager
+	users      UserService
+	posts      PostService
+	txManager  *db.TxManager
+	outboxRepo outbox.Repository
 }
 
 type UserService interface {
@@ -32,11 +35,13 @@ func New(
 	users UserService,
 	posts PostService,
 	txManager *db.TxManager,
+	outboxRepo outbox.Repository,
 ) *Workflow {
 	return &Workflow{
-		users:     users,
-		posts:     posts,
-		txManager: txManager,
+		users:      users,
+		posts:      posts,
+		txManager:  txManager,
+		outboxRepo: outboxRepo,
 	}
 }
 
@@ -63,6 +68,7 @@ func (w *Workflow) Execute(
 ) (*Output, error) {
 	var out *Output
 
+	collector := events.NewCollector()
 	err := w.txManager.WithTx(ctx, func(ctx context.Context) error {
 		u, err := w.users.GetUserByID(ctx, input.AuthorID)
 		if err != nil {
@@ -76,6 +82,21 @@ func (w *Workflow) Execute(
 		})
 		if err != nil {
 			return err
+		}
+		collector.Track(p)
+
+		events := collector.Flush()
+		for _, event := range events {
+			evt := outbox.NewEvent(
+				event.AggregateType(),
+				event.AggregateID(),
+				event.EventType(),
+				event.Payload(),
+			)
+
+			if err := w.outboxRepo.InsertEvent(ctx, evt); err != nil {
+				return err
+			}
 		}
 
 		out = &Output{

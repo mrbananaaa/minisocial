@@ -15,6 +15,7 @@ import (
 	"github.com/mrbananaaa/minisocial/internal/platform/logger"
 	"github.com/mrbananaaa/minisocial/internal/platform/messaging"
 	"github.com/mrbananaaa/minisocial/internal/platform/messaging/jetstream"
+	"github.com/mrbananaaa/minisocial/internal/platform/outbox"
 	"github.com/mrbananaaa/minisocial/internal/platform/validation"
 	"github.com/mrbananaaa/minisocial/internal/post"
 	"github.com/mrbananaaa/minisocial/internal/user"
@@ -71,6 +72,7 @@ func New(cfg *config.Config) (*App, error) {
 
 	userModule := user.New(dbPool)
 	postModule := post.New(dbPool)
+	outboxRepo := outbox.NewRepository(dbPool)
 
 	createUserWorkflow := createuser.New(
 		userModule.Service(),
@@ -80,6 +82,7 @@ func New(cfg *config.Config) (*App, error) {
 		userModule.Service(),
 		postModule.Service(),
 		txManager,
+		outboxRepo,
 	)
 
 	validator := validation.New()
