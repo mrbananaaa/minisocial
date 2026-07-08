@@ -1,5 +1,5 @@
 {
-  description = "Gososialize development shell (nix shell)";
+  description = "Golang development shell (nix shell)";
 
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
@@ -14,6 +14,33 @@
           inherit system;
           overlays = [inputs.go-overlay.overlays.default];
         };
+
+        sequincli = pkgs.buildGoModule rec {
+          pname = "sequin-cli";
+          version = "0.14.6";
+
+          src = pkgs.fetchFromGitHub {
+            owner = "sequinstream";
+            repo = "sequin";
+            rev = "v${version}";
+            hash = "sha256-iNd9lXPa8c15Vh5ktj59tuJIp1Jz3nSqSq3ikSytebs=";
+          };
+
+          sourceRoot = "${src.name}/cli";
+          vendorHash = "sha256-kbVZN4A+eGQzatRlwemI7Tg8g1F7gOBlkKiRmrQesQw=";
+
+          subPackages = ["."];
+
+          ldflags = [
+            "-X main.version=${version}"
+          ];
+
+          postInstall = ''
+            if [ -f "$out/bin/cli" ]; then
+              mv $out/bin/cli $out/bin/sequin
+            fi
+          '';
+        };
       in {
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [
@@ -23,14 +50,8 @@
             sqlc
             goose
             gotestfmt
-
-            # node
-            nodejs
-            pnpm
-            eslint_d
-            prettierd
-            tailwindcss-language-server
-            vscode-langservers-extracted
+            natscli
+            sequincli
 
             # utils
             jq
@@ -43,7 +64,7 @@
             export GOBIN=$HOME/go/bin
             export PATH=$GOBIN:$PATH
 
-            echo "Gososialize dev shell activated! Happy coding 🚀."
+            echo "Go dev shell activated! Happy coding 🚀."
           '';
         };
       }
