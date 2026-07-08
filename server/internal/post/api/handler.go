@@ -46,7 +46,8 @@ func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	// db60cc82-3ff6-4c89-a16b-60c340f18f3c admin
 	// bc481a67-6272-4137-a449-4890d6d76b34 another admin
-	userID, _ := uuid.Parse("bc481a67-6272-4137-a449-4890d6d76b34")
+	// 852b1ddb-2670-47b4-a0d7-7480c5861687 yet another admin
+	userID, _ := uuid.Parse("852b1ddb-2670-47b4-a0d7-7480c5861687")
 	out, err := h.createpost.Execute(r.Context(), createpost.Input{
 		// TODO: extract user from context
 		AuthorID: userID,
