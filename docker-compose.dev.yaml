@@ -9,6 +9,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    command: ["postgres", "-c", "wal_level=logical"]
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
@@ -23,6 +24,37 @@ services:
       - "8222:8222"
     volumes:
       - nats-store:/data
+
+  sequin:
+    image: sequin/sequin:latest
+    pull_policy: always
+    ports:
+      - "7376:7376"
+    environment:
+      PG_HOSTNAME: postgres
+      PG_DATABASE: minisocial
+      PG_PORT: 5432
+      PG_USERNAME: postgres
+      PG_PASSWORD: postgres
+      PG_POOL_SIZE: 20
+      SECRET_KEY_BASE: 9qCh48CSQ0Jkf1xsvAh2gnve8CJ5TYlbQdycXgp3/fUc1m5oJOlCAXviDL0ePk4SUrSYQs91GFxaXbSLJfoTzA==
+      VAULT_KEY: FczCeqNp2Xi05K0V77OSNY2hWcS+zKEQHkQp+6poDWQ=
+      REDIS_URL: redis://sequin_redis:6379
+      CONFIG_FILE_PATH: /config/config.yaml
+    volumes:
+      - ./configs/sequin-config.yaml:/config/config.yaml
+    depends_on:
+      - postgres
+      - sequin_redis
+      - nats
+
+  sequin_redis:
+    image: redis:7
+    ports:
+      - "7378:6379"
+    command: ["redis-server", "--port", "6379"]
+    volumes:
+      - sequin_redis_data:/data
 
   server:
     image: minisocial
@@ -47,3 +79,4 @@ services:
 volumes:
   postgres_data:
   nats-store:
+  sequin_redis_data:
