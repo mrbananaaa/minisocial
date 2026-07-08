@@ -1,0 +1,88 @@
+account:
+  name: "dev"
+
+users:
+  - account: "dev"
+    email: "iam@admin.dev"
+    password: "@Admin1234"
+
+databases:
+  - name: minisocial_pg
+    port: 5432
+    slot:
+      name: sequin_slot
+    ssl: false
+    ipv6: false
+    hostname: postgres
+    password:
+      p******s
+    username: postgres
+    pool_size: 10
+    database: minisocial
+    use_local_tunnel: false
+    publication:
+      name: sequin_pub
+
+functions:
+  - code: |
+      def route(action, record, changes, metadata) do
+        %{
+          subject: "events.#{record["event_type"]}",
+          headers: %{"Nats-Msg-Id" => metadata.idempotency_key}
+        }
+      end
+    name: minisocial-nats_subject
+    type: routing
+    description:
+    sink_type: nats
+  - code: |
+      def transform(action, record, changes, metadata) do
+        # 1. Grab the hex string from the record
+        hex_payload = record["payload"]
+
+        # 2. Strip off the Postgres hex prefix "\x" if it exists
+        # Using String.length instead of the forbidden ".." operator
+        clean_hex = case String.starts_with?(hex_payload, "\\x") do
+          true -> String.slice(hex_payload, 2, String.length(hex_payload))
+          false -> hex_payload
+        end
+
+        # 3. Decode the raw hex string back into a binary string
+        binary_string = Base.decode16!(clean_hex, case: :mixed)
+
+        # 4. Parse the binary string into a real JSON object
+        JSON.decode!(binary_string)
+      end
+    name: minisocial-nats_payload
+    type: transform
+    description:
+
+sinks:
+  - name: minisocial_pg-nats-sink
+    status: active
+    filter: none
+    tables: []
+    source:
+      include_schemas:
+      exclude_schemas:
+      exclude_tables:
+      include_tables:
+        - public.outbox_events
+    transform: minisocial-nats_payload
+    destination:
+      port: 4222
+      type: nats
+      host: nats
+      tls: false
+    actions:
+      - insert
+    batch_size: 1
+    database: minisocial_pg
+    annotations: {}
+    enrichment: none
+    timestamp_format: iso8601
+    message_grouping: true
+    max_retry_count:
+    load_shedding_policy: pause_on_full
+    active_backfills: []
+    routing: minisocial-nats_subject
