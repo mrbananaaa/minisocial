@@ -50,6 +50,7 @@ func (w *Worker) Run(ctx context.Context) {
 			if err := w.executor.Execute(ctx, env); err != nil && len(err.Errors) > 0 {
 				w.logger.Error("failed to execute event",
 					"err", err.Errors,
+					"total", len(err.Errors),
 				)
 
 				continue
