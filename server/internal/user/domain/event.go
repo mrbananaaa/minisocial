@@ -1,6 +1,10 @@
 package domain
 
-import "github.com/google/uuid"
+import (
+	"encoding/json"
+
+	"github.com/google/uuid"
+)
 
 type EventType string
 
@@ -15,4 +19,21 @@ type UserCreated struct {
 
 func (UserCreated) EventType() string {
 	return string(EvUserCreated)
+}
+
+func (UserCreated) AggregateType() string {
+	return "post"
+}
+
+func (p UserCreated) AggregateID() uuid.UUID {
+	return p.UserID
+}
+
+func (p UserCreated) Payload() []byte {
+	payload, err := json.Marshal(p)
+	if err != nil {
+		return []byte{}
+	}
+
+	return payload
 }

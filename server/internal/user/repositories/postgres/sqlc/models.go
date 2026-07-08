@@ -10,6 +10,15 @@ import (
 	"github.com/google/uuid"
 )
 
+type OutboxEvent struct {
+	ID            uuid.UUID
+	AggregateType string
+	AggregateID   uuid.UUID
+	EventType     string
+	Payload       []byte
+	CreatedAt     time.Time
+}
+
 type Post struct {
 	ID         uuid.UUID
 	AuthorID   uuid.UUID
